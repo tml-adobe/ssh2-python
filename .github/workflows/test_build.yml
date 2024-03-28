@@ -1,12 +1,12 @@
-name: Build and Release
+name: Test Builds
 
 on:
-  push:
-    branches:
-      - master
-  release:
-    types:
-      - published
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths-ignore:
+      - "*.md"
+      - "examples/**"
+      - "doc/**"
 
 jobs:
   build_sdist:
@@ -107,22 +107,3 @@ jobs:
         with:
           name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
           path: ./wheelhouse/*.whl
-
-  upload_pypi:
-    needs: [build_wheels, build_sdist]
-    runs-on: ubuntu-latest
-    environment: pypi
-    permissions:
-      id-token: write
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          # unpacks all CIBW artifacts into dist/
-          pattern: cibw-*
-          path: dist
-          merge-multiple: true
-      - uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          user: __token__
-          password: ${{ secrets.PYPI_TOKEN }}
-          skip_existing: true
